@@ -1,73 +1,159 @@
 (() => {
-  const deck = document.getElementById('deck');
-  const slides = [...document.querySelectorAll('.slide')];
-  const dots = [...document.querySelectorAll('.dot')];
-  const counter = document.getElementById('counter');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const fullscreenBtn = document.getElementById('fullscreenBtn');
-  const dialog = document.getElementById('imageDialog');
-  const dialogImage = document.getElementById('dialogImage');
-  const dialogCaption = document.getElementById('dialogCaption');
-  const closeDialog = document.getElementById('closeDialog');
-  let current = 0;
+  const cfg = window.APP_CONFIG || { API_BASE: "" };
+  const $ = (sel) => document.querySelector(sel);
+  const apiBase = (cfg.API_BASE || "").replace(/\/$/, "");
 
-  function goTo(index) {
-    current = Math.max(0, Math.min(slides.length - 1, index));
-    slides[current].scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
-    updateNav();
+  const menuBtn = $("#menuBtn");
+  const mainNav = $("#mainNav");
+  menuBtn?.addEventListener("click", () => {
+    const open = mainNav.classList.toggle("open");
+    menuBtn.setAttribute("aria-expanded", String(open));
+  });
+  mainNav?.querySelectorAll("a").forEach(a => a.addEventListener("click", () => mainNav.classList.remove("open")));
+
+  function fmt(value, digits = 1) {
+    const n = value == null || value === "" ? NaN : Number(value);
+    return Number.isFinite(n) ? n.toFixed(digits) : "—";
   }
 
-  function updateNav() {
-    dots.forEach((dot, i) => dot.classList.toggle('active', i === current));
-    counter.textContent = `${current + 1} / ${slides.length}`;
-    prevBtn.disabled = current === 0;
-    nextBtn.disabled = current === slides.length - 1;
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
   }
 
-  dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
-  prevBtn.addEventListener('click', () => goTo(current - 1));
-  nextBtn.addEventListener('click', () => goTo(current + 1));
+  function formatDate(value) {
+    if (!value) return "—";
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat("es-CO", {dateStyle:"medium", timeStyle:"short"}).format(d);
+  }
 
-  document.addEventListener('keydown', (e) => {
-    if (dialog.open) {
-      if (e.key === 'Escape') dialog.close();
-      return;
-    }
-    if (['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)) { e.preventDefault(); goTo(current + 1); }
-    if (['ArrowLeft','ArrowUp','PageUp'].includes(e.key)) { e.preventDefault(); goTo(current - 1); }
-    if (e.key === 'Home') { e.preventDefault(); goTo(0); }
-    if (e.key === 'End') { e.preventDefault(); goTo(slides.length - 1); }
-  });
+  function api(path) {
+    return `${apiBase}${path}`;
+  }
 
-  const observer = new IntersectionObserver((entries) => {
-    const visible = entries.filter(e => e.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
-    if (!visible) return;
-    const idx = slides.indexOf(visible.target);
-    if (idx >= 0) { current = idx; updateNav(); }
-  }, {root: deck, threshold:[0.5,0.7]});
-  slides.forEach(s => observer.observe(s));
+  async function fetchJson(path) {
+    const res = await fetch(api(path), {headers:{Accept:"application/json"}});
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.detail || `Error HTTP ${res.status}`);
+    return body;
+  }
 
-  document.querySelectorAll('[data-image]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      dialogImage.src = btn.dataset.image;
-      dialogImage.alt = btn.dataset.caption || 'Evidencia ampliada';
-      dialogCaption.textContent = btn.dataset.caption || '';
-      if (typeof dialog.showModal === 'function') dialog.showModal();
-    });
-  });
-  closeDialog.addEventListener('click', () => dialog.close());
-  dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+  function whoText(oms) {
+    if (!oms || typeof oms !== "object") return "Sin referencia compatible";
+    const labels = {pm25:"PM2.5", no2:"NO₂", o3:"O₃"};
+    const parts = Object.entries(oms)
+      .filter(([,v]) => v)
+      .map(([k,v]) => `${labels[k] || k}: ${v.estado}`);
+    return parts.length ? parts.join(" · ") : "Sin referencia compatible";
+  }
 
-  fullscreenBtn.addEventListener('click', async () => {
+  function adapt(json) {
+    const m = json.mediciones || {};
+    return {
+      city: json.ciudad || "Ciudad consultada",
+      date: json.fecha,
+      source: json.fuente || "OpenAQ API v3",
+      pm25: m.pm25_24h_ug_m3,
+      no2: m.no2_24h_ug_m3,
+      o3: m.o3_8h_ug_m3,
+      aqi: json.aqi,
+      category: json.categoria || "Sin clasificación",
+      who: whoText(json.oms),
+      message: json.recomendacion || json.nota || "Consulta procesada por el backend.",
+      stations: Array.isArray(json.estaciones_utilizadas) ? json.estaciones_utilizadas.length : 0,
+    };
+  }
+
+  function renderPollutants(data) {
+    const items = [
+      ["PM2.5", data.pm25, "µg/m³", "Promedio aproximado de 24 horas."],
+      ["NO₂", data.no2, "µg/m³", "Promedio aproximado de 24 horas para referencia OMS."],
+      ["O₃", data.o3, "µg/m³", "Promedio aproximado de 8 horas."],
+    ];
+    $("#pollutantGrid").innerHTML = items.map(([name,value,unit,desc]) => `
+      <article class="pollutant-card">
+        <div class="top"><h3>${name}</h3><span class="tag">OpenAQ</span></div>
+        <div><span class="pollutant-value">${fmt(value)}</span><span class="pollutant-unit">${unit}</span></div>
+        <p>${desc}</p>
+      </article>`).join("");
+
+    const numeric = items.map(x => x[1] == null ? NaN : Number(x[1])).filter(Number.isFinite);
+    const max = Math.max(...numeric, 1);
+    $("#barsChart").innerHTML = items.map(([n,v]) => {
+      const num = v == null ? NaN : Number(v);
+      const width = Number.isFinite(num) ? Math.max(4, (num/max)*100) : 0;
+      return `<div class="bar-row"><strong>${n}</strong><div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div><div class="bar-value">${fmt(v)} µg/m³</div></div>`;
+    }).join("");
+  }
+
+  function renderResult(data) {
+    $("#resultsTitle").textContent = `Calidad del aire en ${data.city}`;
+    $("#sourceLabel").textContent = data.source;
+    $("#aqiValue").textContent = Number.isFinite(Number(data.aqi)) ? String(data.aqi) : "—";
+    $("#aqiCategory").textContent = data.category;
+    $("#aqiMessage").textContent = data.message;
+    $("#metaCity").textContent = data.city;
+    $("#metaDate").textContent = formatDate(data.date);
+    $("#whoStatus").textContent = data.who;
+    $("#stationCount").textContent = String(data.stations || 0);
+    const pct = Math.min(100, Math.max(0, (Number(data.aqi) || 0) / 500 * 100));
+    $("#aqiGauge").style.background = `conic-gradient(var(--blue-700) 0 ${pct}%,#e7eff5 ${pct}% 100%)`;
+    renderPollutants(data);
+  }
+
+  async function renderHistory() {
     try {
-      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
-      else await document.exitFullscreen();
-    } catch (_) {}
-  });
-  document.addEventListener('fullscreenchange', () => {
-    fullscreenBtn.textContent = document.fullscreenElement ? 'Salir' : 'Presentar';
+      const payload = await fetchJson("/api/historial");
+      const rows = payload.historial || [];
+      $("#historyBody").innerHTML = rows.slice(0,50).map(r => `
+        <tr>
+          <td>${escapeHtml(formatDate(r.fecha))}</td><td>${escapeHtml(r.ciudad ?? "")}</td><td>${escapeHtml(r.aqi ?? "")}</td><td>${escapeHtml(r.categoria ?? "")}</td>
+          <td>${escapeHtml(r.pm25_24h_ug_m3 ?? "—")}</td><td>${escapeHtml(r.no2_24h_ug_m3 ?? "—")}</td><td>${escapeHtml(r.o3_8h_ug_m3 ?? "—")}</td>
+        </tr>`).join("");
+      $("#emptyHistory").style.display = rows.length ? "none" : "block";
+    } catch (err) {
+      $("#historyBody").innerHTML = "";
+      $("#emptyHistory").style.display = "block";
+      $("#emptyHistory").textContent = `Historial no disponible: ${err.message}`;
+    }
+  }
+
+  async function checkBackend() {
+    const el = $("#backendStatus");
+    try {
+      const payload = await fetchJson("/salud");
+      el.textContent = payload.openaq_configurada ? "Backend activo; OpenAQ configurado" : "Backend activo; falta configurar OPENAQ_API_KEY";
+      el.classList.add("ok");
+    } catch (err) {
+      el.textContent = "Backend no disponible";
+      el.classList.remove("ok");
+    }
+  }
+
+  $("#queryForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const city = $("#cityInput").value.trim();
+    const status = $("#queryStatus");
+    const btn = $("#queryBtn");
+    if (!city) return;
+    btn.disabled = true;
+    status.textContent = "Consultando OpenAQ desde el backend Python…";
+    try {
+      const json = await fetchJson(`/api/ciudad/${encodeURIComponent(city)}`);
+      renderResult(adapt(json));
+      await renderHistory();
+      status.textContent = "Consulta completada y registrada en el historial.";
+      location.hash = "resultados";
+    } catch (err) {
+      status.textContent = `No fue posible completar la consulta: ${err.message}`;
+    } finally {
+      btn.disabled = false;
+    }
   });
 
-  updateNav();
+  $("#downloadCsv").addEventListener("click", () => {
+    window.location.href = api("/api/historial.csv");
+  });
+
+  checkBackend();
+  renderHistory();
 })();

@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b4ea2">
+  <meta name="description" content="Pitch del proyecto Monitor de Calidad del Aire - Universidad ECCI">
+  <title>Monitor de Calidad del Aire | Pitch del Proyecto</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <strong>Monitor de Calidad del Aire</strong>
+        <span>Universidad ECCI · Electiva I - Python</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span id="counter" class="counter" aria-live="polite">1 / 5</span>
+      <button id="fullscreenBtn" class="ghost-btn" type="button">Presentar</button>
+    </div>
+  </header>
+
+  <nav class="side-dots" aria-label="Navegación de diapositivas">
+    <button class="dot active" data-slide="0" aria-label="Ir a diapositiva 1"></button>
+    <button class="dot" data-slide="1" aria-label="Ir a diapositiva 2"></button>
+    <button class="dot" data-slide="2" aria-label="Ir a diapositiva 3"></button>
+    <button class="dot" data-slide="3" aria-label="Ir a diapositiva 4"></button>
+    <button class="dot" data-slide="4" aria-label="Ir a diapositiva 5"></button>
+  </nav>
+
+  <main id="deck" class="deck">
+    <section class="slide slide-cover" id="slide-1" data-title="Problema y objetivo">
+      <div class="slide-inner cover-layout">
+        <div class="eyebrow">Socialización · Segundo corte</div>
+        <h1>Monitor de Calidad del Aire</h1>
+        <p class="lead">Aplicativo web en Python para consultar, interpretar y visualizar mediciones de calidad del aire en ciudades de Colombia.</p>
+        <div class="cover-grid">
+          <article class="statement-card">
+            <span class="kicker">Problema</span>
+            <h2>Los datos existen, pero no siempre son fáciles de interpretar.</h2>
+            <p>PM2.5, NO₂ y O₃ suelen presentarse con unidades, estaciones y periodos técnicos. El proyecto busca convertir esa información en una lectura clara, trazable y útil para un usuario no especializado.</p>
+          </article>
+          <article class="statement-card accent-card">
+            <span class="kicker">Objetivo</span>
+            <h2>Unificar consulta, interpretación y registro en una experiencia web.</h2>
+            <p>El backend en Python consulta OpenAQ, valida datos y prepara la información para mostrar AQI EPA cuando aplique, referencia OMS por separado, gráficas e historial.</p>
+          </article>
+        </div>
+        <div class="cover-footer">
+          <div><span>Integrantes</span><strong>Johan Stwee Salgado Rodríguez · Santiago Nicolás López López</strong></div>
+          <div><span>Estado</span><strong>Sprint 1 completado · Sprint 2 en desarrollo</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-2" data-title="Diseño funcional">
+      <div class="slide-inner">
+        <div class="section-heading">
+          <span class="section-number">02</span>
+          <div><span class="eyebrow">Diseño funcional</span><h2>Actores, casos de uso y propuesta de interfaz</h2></div>
+        </div>
+        <div class="two-col wide-left">
+          <div class="content-stack">
+            <div class="actor-row">
+              <div class="actor-card"><strong>Usuario visitante</strong><span>Consulta, interpreta, visualiza y revisa historial sin crear una cuenta.</span></div>
+              <div class="actor-card"><strong>Administrador</strong><span>Accede a una vista restringida para supervisar y mantener el historial.</span></div>
+              <div class="actor-card"><strong>OpenAQ</strong><span>Sistema externo que suministra las mediciones públicas.</span></div>
+            </div>
+            <div class="case-list">
+              <span>CU-01 Consultar calidad del aire</span>
+              <span>CU-02 Interpretar mediciones</span>
+              <span>CU-03 Visualizar gráficas</span>
+              <span>CU-04 Consultar historial</span>
+              <span>CU-05 Descargar CSV</span>
+              <span>CU-06 Gestionar historial</span>
+            </div>
+            <div class="flow-strip" aria-label="Flujo del sistema">
+              <span>Web</span><i></i><span>Backend Python</span><i></i><span>OpenAQ</span><i></i><span>AQI / OMS</span><i></i><span>Historial</span>
+            </div>
+          </div>
+          <div class="evidence-column">
+            <button class="evidence-card" data-image="assets/casos_uso.png" data-caption="Diagrama de casos de uso del proyecto">
+              <img src="assets/casos_uso.png" alt="Diagrama de casos de uso del Monitor de Calidad del Aire">
+              <span>Diagrama de casos de uso</span>
+            </button>
+            <button class="evidence-card compact" data-image="assets/mockups.png" data-caption="Mockups de consulta, resultados e historial">
+              <img src="assets/mockups.png" alt="Mockups de la interfaz web">
+              <span>Mockups del aplicativo web</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-3" data-title="Historias de usuario">
+      <div class="slide-inner">
+        <div class="section-heading">
+          <span class="section-number">03</span>
+          <div><span class="eyebrow">Historias de usuario</span><h2>De la necesidad del usuario al backlog</h2></div>
+        </div>
+        <div class="story-layout">
+          <div class="story-grid">
+            <article class="story-card high"><span>HU-MA-001 · Alta</span><p>Como usuario visitante, necesito seleccionar una ciudad y consultar su calidad del aire para conocer las condiciones reportadas.</p></article>
+            <article class="story-card high"><span>HU-MA-002 · Alta</span><p>Como usuario visitante, necesito interpretar PM2.5, NO₂ y O₃ mediante categorías y alertas comprensibles.</p></article>
+            <article class="story-card"><span>HU-MA-003 · Media</span><p>Como usuario visitante, necesito visualizar gráficamente los resultados y consultar el historial para comparar la información.</p></article>
+            <article class="story-card"><span>HU-MA-004 · Media</span><p>Como administrador, necesito una vista restringida para revisar y gestionar el historial del aplicativo.</p></article>
+          </div>
+          <button class="evidence-card stories-shot" data-image="assets/historias_usuario.png" data-caption="Resumen documentado de historias de usuario">
+            <img src="assets/historias_usuario.png" alt="Resumen de historias de usuario documentadas">
+            <span>Evidencia documental de las historias</span>
+          </button>
+        </div>
+        <div class="coherence-line">
+          <strong>Coherencia evaluada</strong>
+          <span>Problema</span><b>→</b><span>Caso de uso</span><b>→</b><span>Historia de usuario</span><b>→</b><span>Tarea en Jira</span><b>→</b><span>Desarrollo</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-4" data-title="Scrum y avances">
+      <div class="slide-inner">
+        <div class="section-heading">
+          <span class="section-number">04</span>
+          <div><span class="eyebrow">Scrum y avances reales</span><h2>Planificación en Jira y estado de los sprints</h2></div>
+        </div>
+        <div class="scrum-layout">
+          <div>
+            <div class="status-row">
+              <div class="status-card done"><span>Sprint 1</span><strong>Completado</strong><small>Análisis y requisitos · MCA-1 a MCA-5</small></div>
+              <div class="status-card active"><span>Sprint 2</span><strong>En desarrollo</strong><small>Historias, UML y mockups · entrega 06 oct. 2026</small></div>
+            </div>
+            <div class="sprint-track" aria-label="Ocho sprints del proyecto">
+              <div class="sprint-chip done">1<br><span>Análisis</span></div>
+              <div class="sprint-chip active">2<br><span>Diseño</span></div>
+              <div class="sprint-chip">3<br><span>GitHub</span></div>
+              <div class="sprint-chip">4<br><span>OpenAQ</span></div>
+              <div class="sprint-chip">5<br><span>AQI/OMS</span></div>
+              <div class="sprint-chip">6<br><span>Web</span></div>
+              <div class="sprint-chip">7<br><span>Pruebas</span></div>
+              <div class="sprint-chip">8<br><span>Entrega</span></div>
+            </div>
+            <div class="roles-panel">
+              <div><strong>Johan</strong><span>Análisis, requisitos, documentación, trazabilidad y validación.</span></div>
+              <div><strong>Santiago</strong><span>Validación técnica, OpenAQ y actividades de desarrollo.</span></div>
+            </div>
+          </div>
+          <div class="evidence-stack">
+            <button class="evidence-card jira-main" data-image="assets/jira_sprint1.png" data-caption="MCA-1 a MCA-5 marcadas como Listo en Jira">
+              <img src="assets/jira_sprint1.png" alt="Listado de tareas del Sprint 1 en Jira, todas en estado Listo">
+              <span>Jira · Sprint 1 cerrado</span>
+            </button>
+            <div class="thumb-row">
+              <button class="mini-evidence" data-image="assets/evidencia_mca1.png" data-caption="Evidencia MCA-1: problema, objetivos y alcance"><img src="assets/evidencia_mca1.png" alt="Evidencia MCA-1"><span>MCA-1</span></button>
+              <button class="mini-evidence" data-image="assets/evidencia_mca5.png" data-caption="Evidencia MCA-5: cobertura y viabilidad de OpenAQ"><img src="assets/evidencia_mca5.png" alt="Evidencia MCA-5"><span>MCA-5</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-5" data-title="Desarrollo y próximo paso">
+      <div class="slide-inner">
+        <div class="section-heading">
+          <span class="section-number">05</span>
+          <div><span class="eyebrow">Estado del desarrollo</span><h2>Base técnica, próximo paso y retroalimentación del equipo</h2></div>
+        </div>
+        <div class="closing-layout">
+          <div class="tech-card">
+            <span class="kicker">Python</span>
+            <h3>Base modular preparada para la integración.</h3>
+            <div class="code-tree" aria-label="Estructura del proyecto Python">
+              <span>api.py <em>FastAPI</em></span>
+              <span>src/openaq_client.py <em>consulta OpenAQ</em></span>
+              <span>src/aqi.py <em>clasificación AQI</em></span>
+              <span>src/history.py <em>historial CSV</em></span>
+              <span>src/charts.py <em>Matplotlib</em></span>
+              <span>tests/test_aqi.py <em>pruebas</em></span>
+            </div>
+            <p class="note">La integración completa con el aplicativo web continúa de forma incremental en los siguientes sprints.</p>
+          </div>
+          <div class="next-card">
+            <span class="kicker">Próximo paso</span>
+            <h3>Cerrar Sprint 2 y pasar a arquitectura + GitHub.</h3>
+            <p>Se completan historias, UML y mockups; después se formaliza la estructura del repositorio y se inicia la construcción del backend conectado con OpenAQ.</p>
+            <button class="evidence-card task-shot" data-image="assets/jira_mca5.png" data-caption="MCA-5: evidencia técnica adjunta y responsable asignado">
+              <img src="assets/jira_mca5.png" alt="Detalle de la tarea MCA-5 en Jira">
+              <span>Evidencia técnica en Jira</span>
+            </button>
+          </div>
+        </div>
+        <div class="retro-panel">
+          <div class="retro-title">Retroalimentación del Sprint 1</div>
+          <div class="retro-grid">
+            <blockquote><strong>Johan → Santiago</strong><p>La validación temprana de OpenAQ ayudó a comprobar que el alcance técnico es viable y a evitar decisiones basadas en supuestos.</p></blockquote>
+            <blockquote><strong>Santiago → Johan</strong><p>La definición clara de requisitos y criterios de aceptación facilita convertir cada necesidad en tareas técnicas realizables.</p></blockquote>
+            <blockquote class="team"><strong>Acuerdo del equipo</strong><p>En Sprint 2 se mantendrá la evidencia en Jira y se cerrarán UML, historias y mockups antes de avanzar a la arquitectura del repositorio.</p></blockquote>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="nav-controls" aria-label="Controles de presentación">
+    <button id="prevBtn" type="button" aria-label="Diapositiva anterior">‹</button>
+    <button id="nextBtn" type="button" aria-label="Diapositiva siguiente">›</button>
+  </div>
+
+  <dialog id="imageDialog" class="image-dialog">
+    <button id="closeDialog" class="dialog-close" type="button" aria-label="Cerrar imagen">×</button>
+    <img id="dialogImage" alt="">
+    <p id="dialogCaption"></p>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
